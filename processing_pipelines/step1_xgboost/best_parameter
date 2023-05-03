@@ -1,0 +1,2 @@
+Best parameters:  {'xgb_model__colsample_bytree': 0.1, 'xgb_model__gamma': 1, 'xgb_model__learning_rate': 0.01, 'xgb_model__max_depth': 2, 'xgb_model__n_estimators': 150}
+Best score:  0.38000000000000006
