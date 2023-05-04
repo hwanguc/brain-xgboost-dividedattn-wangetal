@@ -34,19 +34,32 @@ import scipy.stats
 from collections import Counter
 
 import matplotlib.pyplot as plt
-plt.style.use('classic')
+plt.style.use('v2.0')
+plt.figure(facecolor='white')
 
+from utils import average_roi, cross_val_predict, plot_confusion_matrix, single_roi, compare_boxplots
 
 import warnings
 warnings.filterwarnings("ignore")
 
+# global settings
+
+set_env = 1 # 0 = Local macOS machine, 1 = Local linux machine with cuda support
+hyper_tune = 3 # 1 = grid search in a small range based on previously earned best state of 100 paras; 2 = grid search in a small range based on previously earned best state of 150 paras; 3 = a exhaustive grid search; 
+
 # data curation and cleaning
 
-## spreadsheet
-dat_spmt = pd.read_csv('/home/hwanguc/Desktop/dat_temp/data-brain-xgboost-dividedattn-wangetal/dat_all/dat_spmt.csv')
+## spreadsheet and dir
+
+if set_env == 0:
+   dat_spmt = pd.read_csv('/Users/hanwang/Desktop/data_temp/data-brain-xgboost-dividedattn-wangetal/dat_all/dat_spmt.csv')
+   dir_spmt = '/Users/hanwang/Desktop/data_temp/data-brain-xgboost-dividedattn-wangetal/dat_all/'
+else:
+   dat_spmt = pd.read_csv('/home/hwanguc/Desktop/dat_temp/data-brain-xgboost-dividedattn-wangetal/dat_all/dat_spmt.csv')
+   dir_spmt = '/home/hwanguc/Desktop/dat_temp/data-brain-xgboost-dividedattn-wangetal/dat_all/'
 
 ## read the spmt files
-dir_spmt = '/home/hwanguc/Desktop/dat_temp/data-brain-xgboost-dividedattn-wangetal/dat_all/'
+
 spmt_files = [dir_spmt + file for file in dat_spmt.filename]
 
 ## confirm that all spmT files have the same dimensions as the first file (and therefore are all of equal dimensions)
@@ -74,7 +87,7 @@ from nilearn.datasets import fetch_atlas_schaefer_2018
 n_rois = 100
 schaefer_parc = fetch_atlas_schaefer_2018(n_rois = n_rois, resolution_mm=2, yeo_networks=17, verbose=False)
 ### Insert Background label under the index 0 because it is missing in the array
-schaefer_parc.labels = np.insert(schaefer_parc.labels, 0, 'Background')
+#schaefer_parc.labels = np.insert(schaefer_parc.labels, 0, 'Background')
 
 
 ## a dict mapping indices to anatomical labels
@@ -101,20 +114,14 @@ np.unique(roin_ints)
 from nilearn.input_data import NiftiLabelsMasker
 label_masker = NiftiLabelsMasker(labels_img=schaefer_rois, strategy='mean') # this func is defined to take the mean of each roi
 
-def average_roi(spm_file):
-  label_masker.fit(spm_file)
-  averaged_roi = label_masker.transform(spm_file)
-  return averaged_roi
-
-
 X_100 = np.zeros((len(spmt_files), n_rois))
 
 for idx, tstat in enumerate(spmt_files):
     # average ROIs for each file and add in new row of matrix X
-    avg_roi = average_roi(tstat)
+    avg_roi = average_roi(label_masker,tstat)
     X_100[idx,:] = avg_roi
 
-X_100 = np.insert(X_100, 0, np.zeros(len(spmt_files)), axis=1)
+#X_100 = np.insert(X_100, 0, np.zeros(len(spmt_files)), axis=1)
 
 ## plot the average functional image for each task condition
 # get a separate list of spmt files for each condition
@@ -155,8 +162,11 @@ y
 # MODEL
 
 ## the model
-
-xgb_model = xgb.XGBClassifier(tree_method='gpu_hist', predictor='gpu_predictor')
+if set_env == 0:
+   xgb_model = xgb.XGBClassifier()
+else:
+   xgb_model = xgb.XGBClassifier(tree_method='gpu_hist', predictor='gpu_predictor')
+  
 scaler = StandardScaler()
 
 from sklearn.pipeline import Pipeline
@@ -171,13 +181,31 @@ sss = StratifiedKFold(n_splits=5, shuffle=False, random_state=None)
 
 
 ## hyperparameters: the grid should be stored as a dictionary
-hyper_grid = {
-    'xgb_model__max_depth': np.arange(1, 3, 1),        #python range end is not inclusive
-    'xgb_model__learning_rate': np.arange(0.01, 0.05, 0.03),
-    'xgb_model__gamma': np.arange(0, 2, 1),
-    'xgb_model__colsample_bytree': np.arange(0.1, 0.4, 0.2),
-    'xgb_model__n_estimators': np.arange(100, 151, 50),
-}
+if hyper_tune == 1:
+    hyper_grid = {
+        'xgb_model__max_depth': np.arange(1, 3, 1),
+        'xgb_model__learning_rate': np.arange(0.01, 0.05, 0.03),
+        'xgb_model__gamma': np.arange(0, 2, 1),
+        'xgb_model__colsample_bytree': np.arange(0.1, 0.4, 0.2),
+        'xgb_model__n_estimators': np.arange(100, 151, 50),
+    }
+elif hyper_tune == 2:
+    hyper_grid = {
+        'xgb_model__max_depth': np.arange(1, 3, 1),
+        'xgb_model__learning_rate': np.arange(0.01, 0.05, 0.03),
+        'xgb_model__gamma': np.arange(0, 2, 1),
+        'xgb_model__colsample_bytree': np.arange(0.1, 0.4, 0.2),
+        'xgb_model__n_estimators': np.arange(100, 151, 50),
+    }
+else:
+    hyper_grid = {
+        'xgb_model__max_depth': np.arange(1, 7, 1),
+        'xgb_model__learning_rate': np.arange(0.01, 0.16, 0.03),
+        'xgb_model__gamma': np.arange(0, 8, 1),
+        'xgb_model__colsample_bytree ': np.arange(0.1, 0.9, 0.2),
+        'xgb_model__n_estimators': np.arange(50, 301, 50),
+    }
+       
 
 ## fit the model
 CV = GridSearchCV(my_pipe, hyper_grid, verbose=4, cv=sss, error_score = 'raise')
@@ -192,9 +220,9 @@ tuned_xgb = best_model['xgb_model']
 
 ## save/load the best model
 
-dump(best_model, "best_xgboost_state.joblib")
-#best_model = load("best_xgboost_state.joblib")
-#tuned_xgb = best_model['xgb_model']
+#dump(best_model, "best_xgboost_state.joblib")
+best_model = load("best_xgboost_state.joblib")
+tuned_xgb = best_model['xgb_model']
 
 
 # Visualisation
@@ -203,40 +231,11 @@ dump(best_model, "best_xgboost_state.joblib")
 
 ### get model predictions for the validation batch during training
 
-def cross_val_predict(model, kfold: sss, X: np.array, y: np.array) -> Tuple[np.array, np.array, np.array]:
-    model_ = cp.deepcopy(model)
-    no_classes = len(np.unique(y))
-    actual_classes = np.empty([0], dtype=int)
-    predicted_classes = np.empty([0], dtype=int)
-    predicted_proba = np.empty([0, no_classes]) 
-
-    for train_ndx, test_ndx in sss.split(X, y):
-        train_X, train_y, test_X, test_y = X[train_ndx], y[train_ndx], X[test_ndx], y[test_ndx]
-        actual_classes = np.append(actual_classes, test_y)
-        model_.fit(train_X, train_y)
-    
-
-        predicted_classes = np.append(predicted_classes, model_.predict(test_X))
-        try:
-            predicted_proba = np.append(predicted_proba, model_.predict_proba(test_X), axis=0)
-        except:
-            predicted_proba = np.append(predicted_proba, np.zeros((len(test_X), no_classes), dtype=float), axis=0)
-
-    return actual_classes, predicted_classes, predicted_proba
-
-
 actual_classes, predicted_classes, _ = cross_val_predict(best_model, sss, X_100, y)
 
 ### plot the confusion matrix
 
-def plot_confusion_matrix(actual_classes: np.array, predicted_classes: np.array, sorted_labels: list):
-    matrix = confusion_matrix(actual_classes, predicted_classes, labels=sorted_labels)
-    sorted_labels = ['aeve', 'aevh', 'ahve', 'ahvh']
-    plt.figure(figsize=(12.8,6))
-    sns.heatmap(matrix, annot=True, xticklabels=sorted_labels, yticklabels=sorted_labels, cmap="Blues", fmt="g")
-    plt.xlabel('Predicted'); plt.ylabel('Actual'); plt.title('Confusion Matrix')
 
-    plt.show()
 
 plot_confusion_matrix(actual_classes, predicted_classes, [0, 1, 2, 3])
 
@@ -264,7 +263,9 @@ plt.ylabel('Frequency')
 plt.show()
 
 
-## feature importance
+## Feature importance
+
+### Determine feature importance
 
 from xgboost import plot_importance
 
@@ -272,4 +273,121 @@ tuned_xgb.get_booster().feature_names = feat_names_100
 ax = xgb.plot_importance(tuned_xgb.get_booster(),max_num_features = 100)
 fig = ax.figure
 fig.set_size_inches(15, 50)
+
+### Find a cut-off for unimportant features
+
+imp_list = tuned_xgb.feature_importances_
+imp_list = np.insert(imp_list, 0, 0)
+
+
+fnames = tuned_xgb.get_booster().feature_names
+fnames = np.insert(fnames, 0, 'Background')
+
+
+importa = dict(zip(fnames, imp_list))
+thresh = importa['17Networks_RH_SomMotB_Aud_1'] # here we only get the top 10 features
+thresh
+
+#### cuting off features of importance value below that of the background noise (might delete this part bc duplicated later)
+for k, v in importa.items():
+  if v <= thresh:
+    importa[k] = 0
+
+#### create a dictionary {index: imp_value}
+idx100_to_imp_score = dict(enumerate(imp_list))
+
+#### make a copy of the identity rois
+importance_map = roin_ints.copy()
+
+#### cuting off features of importance value below that of the background noise
+for k, v in idx100_to_imp_score.items():
+  if v <= thresh:
+    idx100_to_imp_score[k] = 0 
+
+#### iterate through the roi map and replace idx with val from the dict
+with np.nditer(importance_map, op_flags=['readwrite']) as it:
+  for x in it:
+    x[...] = idx100_to_imp_score[int(x)]
+
+
+
+#normalize to minmax scale between 0 and 100
+from sklearn import preprocessing
+
+min_max_scaler = preprocessing.MinMaxScaler(feature_range=(0,1))
+impo_normalised = min_max_scaler.fit_transform(importance_map.reshape(-1, importance_map.shape[-1])).reshape(importance_map.shape)
+
+# np array to nifti 3D format
+importance_plot = nilearn.image.new_img_like(schaefer_rois, impo_normalised, affine=None, copy_header=False)
+
+# plot feature importance
+nilearn.plotting.plot_roi(importance_plot, cmap='Reds',  colorbar=True, cut_coords=(-51, -64, 31))
+
+plotting.plot_stat_map(importance_plot, display_mode='mosaic', cmap='Reds')
+
+
+
+
+
+single_roi(roin_ints, '17Networks_LH_ContA_PFCl_1', fnames, schaefer_rois)
+
+
+# create a separate ROI matrix for each group
+X_aeve = np.zeros((len(spmt_files_aeve), n_rois))
+for subject, tstat in enumerate(spmt_files_aeve):
+    # average ROIs for each file and add in new row of matrix X
+    avg_roi = average_roi(label_masker,tstat)
+    X_aeve[subject,:] = avg_roi
+X_aeve = np.insert(X_aeve, 0, np.zeros(len(spmt_files_aeve)), axis=1) 
+
+X_aevh = np.zeros((len(spmt_files_aevh), n_rois))
+for subject, tstat in enumerate(spmt_files_aevh):
+    # average ROIs for each file and add in new row of matrix X
+    avg_roi = average_roi(label_masker,tstat)
+    X_aevh[subject,:] = avg_roi
+X_aevh = np.insert(X_aevh, 0, np.zeros(len(spmt_files_aevh)), axis=1)
+
+X_ahve = np.zeros((len(spmt_files_ahve), n_rois))
+for subject, tstat in enumerate(spmt_files_ahve):
+    # average ROIs for each file and add in new row of matrix X
+    avg_roi = average_roi(label_masker,tstat)
+    X_ahve[subject,:] = avg_roi
+X_ahve = np.insert(X_ahve, 0, np.zeros(len(spmt_files_ahve)), axis=1)
+
+X_ahvh = np.zeros((len(spmt_files_ahvh), n_rois))
+for subject, tstat in enumerate(spmt_files_ahvh):
+    # average ROIs for each file and add in new row of matrix X
+    avg_roi = average_roi(label_masker,tstat)
+    X_ahvh[subject,:] = avg_roi
+X_ahvh = np.insert(X_ahvh, 0, np.zeros(len(spmt_files_ahvh)), axis=1) 
+
+print(X_aeve.shape, X_aevh.shape, X_ahve.shape, X_ahvh.shape)
+
+
+
+# convert to df, make a column values boxplot
+df_100_aeve = pd.DataFrame(X_aeve, columns=fnames)
+df_100_aevh = pd.DataFrame(X_aevh, columns=fnames)
+df_100_ahve = pd.DataFrame(X_ahve, columns=fnames)
+df_100_ahvh = pd.DataFrame(X_ahvh, columns=fnames)
+
+
+
+mask_roi_list = []
+for key, val in importa.items():
+  if val != 0:
+    mask_roi_list.append(key)
+
+len(mask_roi_list)
+
+
+
+for roi in mask_roi_list:
+  single_roi(roin_ints, roi, fnames, schaefer_rois)
+
+for roi in mask_roi_list:
+  compare_boxplots(roi, df_100_aeve, df_100_aevh, df_100_ahve, df_100_ahvh)
+
+
+compare_boxplots('17Networks_RH_DefaultB_PFCv_2', df_100_aeve, df_100_aevh, df_100_ahve, df_100_ahvh)
 
