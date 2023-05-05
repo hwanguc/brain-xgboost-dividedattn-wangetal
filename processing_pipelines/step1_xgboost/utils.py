@@ -5,8 +5,8 @@ import seaborn as sns
 from typing import Tuple
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
-plt.style.use('v2.0')
-plt.figure(facecolor='white')
+plt.style.use('seaborn-v0_8-poster')
+#plt.figure(facecolor='white')
 
 import nilearn
 from nilearn import plotting

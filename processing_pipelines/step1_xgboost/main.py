@@ -34,8 +34,8 @@ import scipy.stats
 from collections import Counter
 
 import matplotlib.pyplot as plt
-plt.style.use('v2.0')
-plt.figure(facecolor='white')
+plt.style.use('seaborn-v0_8-poster')
+#plt.figure(facecolor='white')
 
 from utils import average_roi, cross_val_predict, plot_confusion_matrix, single_roi, compare_boxplots
 
@@ -84,7 +84,7 @@ for idx, tstat_file in enumerate(spmt_files):
 ## define fine the functional parcellations on the atlas
 from nilearn.datasets import fetch_atlas_schaefer_2018
 ### It can return different number of ROIs; we'll set it to 100
-n_rois = 100
+n_rois = 400
 schaefer_parc = fetch_atlas_schaefer_2018(n_rois = n_rois, resolution_mm=2, yeo_networks=17, verbose=False)
 ### Insert Background label under the index 0 because it is missing in the array
 #schaefer_parc.labels = np.insert(schaefer_parc.labels, 0, 'Background')
@@ -202,7 +202,7 @@ else:
         'xgb_model__max_depth': np.arange(1, 7, 1),
         'xgb_model__learning_rate': np.arange(0.01, 0.16, 0.03),
         'xgb_model__gamma': np.arange(0, 8, 1),
-        'xgb_model__colsample_bytree ': np.arange(0.1, 0.9, 0.2),
+        'xgb_model__colsample_bytree': np.arange(0.1, 0.9, 0.2),
         'xgb_model__n_estimators': np.arange(50, 301, 50),
     }
        
@@ -220,7 +220,7 @@ tuned_xgb = best_model['xgb_model']
 
 ## save/load the best model
 
-#dump(best_model, "best_xgboost_state.joblib")
+dump(best_model, "best_xgboost_state_x400.joblib")
 best_model = load("best_xgboost_state.joblib")
 tuned_xgb = best_model['xgb_model']
 
@@ -270,9 +270,10 @@ plt.show()
 from xgboost import plot_importance
 
 tuned_xgb.get_booster().feature_names = feat_names_100
-ax = xgb.plot_importance(tuned_xgb.get_booster(),max_num_features = 100)
+ax = xgb.plot_importance(tuned_xgb.get_booster(),importance_type = "gain",max_num_features = 50)
 fig = ax.figure
 fig.set_size_inches(15, 50)
+
 
 ### Find a cut-off for unimportant features
 
@@ -283,9 +284,19 @@ imp_list = np.insert(imp_list, 0, 0)
 fnames = tuned_xgb.get_booster().feature_names
 fnames = np.insert(fnames, 0, 'Background')
 
+sorted_idx = imp_list.argsort().tolist()
+imp_list_sorted = [imp_list[i] for i in sorted_idx]
+f_names_sorted = [fnames[i] for i in sorted_idx]
+
+fig, ax = plt.subplots(figsize=(15, 150))
+ax.barh(f_names_sorted, imp_list_sorted)
+plt.xlabel("Xgboost Feature Importance")
+
+
+
 
 importa = dict(zip(fnames, imp_list))
-thresh = importa['17Networks_RH_SomMotB_Aud_1'] # here we only get the top 10 features
+thresh = importa['17Networks_RH_LimbicA_TempPole_6'] # here we only get the top 10 features
 thresh
 
 #### cuting off features of importance value below that of the background noise (might delete this part bc duplicated later)
