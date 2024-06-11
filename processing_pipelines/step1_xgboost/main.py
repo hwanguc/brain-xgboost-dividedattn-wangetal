@@ -34,7 +34,7 @@ import scipy.stats
 from collections import Counter
 
 import matplotlib.pyplot as plt
-plt.style.use('seaborn-v0_8-poster')
+plt.style.use('seaborn-bright')
 #plt.figure(facecolor='white')
 
 from utils import average_roi, cross_val_predict, plot_confusion_matrix, single_roi, compare_boxplots
@@ -44,16 +44,16 @@ warnings.filterwarnings("ignore")
 
 # global settings
 
-set_env = 1 # 0 = Local macOS machine, 1 = Local linux machine with cuda support
-hyper_tune = 3 # 1 = grid search in a small range based on previously earned best state of 100 paras; 2 = grid search in a small range based on previously earned best state of 150 paras; 3 = a exhaustive grid search; 
+set_env = 0 # 0 = Local macOS machine, 1 = Local linux machine with cuda support
+hyper_tune = 3 # 1 = grid search in a small range based on previously earned best state of 100 paras; 2 = grid search in a small range based on previously earned best state of 150 paras; 3 = grid search in a small range based on the best state of 400 parcels; 4 = a exhaustive grid search; 
 
 # data curation and cleaning
 
 ## spreadsheet and dir
 
 if set_env == 0:
-   dat_spmt = pd.read_csv('/Users/hanwang/Desktop/data_temp/data-brain-xgboost-dividedattn-wangetal/dat_all/dat_spmt.csv')
-   dir_spmt = '/Users/hanwang/Desktop/data_temp/data-brain-xgboost-dividedattn-wangetal/dat_all/'
+   dat_spmt = pd.read_csv('/Volumes/LaCie/Backup/230518_study3_fMRI/data-brain-xgboost-dividedattn-wangetal/dat_all/dat_spmt.csv')
+   dir_spmt = '/Volumes/LaCie/Backup/230518_study3_fMRI/data-brain-xgboost-dividedattn-wangetal/dat_all/'
 else:
    dat_spmt = pd.read_csv('/home/hwanguc/Desktop/dat_temp/data-brain-xgboost-dividedattn-wangetal/dat_all/dat_spmt.csv')
    dir_spmt = '/home/hwanguc/Desktop/dat_temp/data-brain-xgboost-dividedattn-wangetal/dat_all/'
@@ -197,6 +197,14 @@ elif hyper_tune == 2:
         'xgb_model__colsample_bytree': np.arange(0.1, 0.4, 0.2),
         'xgb_model__n_estimators': np.arange(100, 151, 50),
     }
+elif hyper_tune == 3:
+    hyper_grid = {
+        'xgb_model__max_depth': np.arange(2, 4, 1),
+        'xgb_model__learning_rate': np.arange(0.06999999999999999, 0.09, 0.03),
+        'xgb_model__gamma': np.arange(0, 1, 1),
+        'xgb_model__colsample_bytree': np.arange(0.1, 0.2, 0.2),
+        'xgb_model__n_estimators': np.arange(100, 150, 50),
+    }
 else:
     hyper_grid = {
         'xgb_model__max_depth': np.arange(1, 7, 1),
@@ -221,7 +229,7 @@ tuned_xgb = best_model['xgb_model']
 ## save/load the best model
 
 dump(best_model, "best_xgboost_state_x400.joblib")
-best_model = load("best_xgboost_state.joblib")
+best_model = load("./best_models/best_xgboost_state_x400.joblib")
 tuned_xgb = best_model['xgb_model']
 
 
@@ -340,7 +348,7 @@ plotting.plot_stat_map(importance_plot, display_mode='mosaic', cmap='Reds')
 
 
 
-single_roi(roin_ints, '17Networks_LH_ContA_PFCl_1', fnames, schaefer_rois)
+single_roi(roin_ints, '17Networks_LH_TempPar_1', fnames, schaefer_rois)
 
 
 # create a separate ROI matrix for each group
