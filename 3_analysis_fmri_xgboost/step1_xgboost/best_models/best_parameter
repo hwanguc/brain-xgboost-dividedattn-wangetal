@@ -1,0 +1,33 @@
+100 parcels:
+
+Best parameters:  {'xgb_model__colsample_bytree': 0.1, 'xgb_model__gamma': 1, 'xgb_model__learning_rate': 0.01, 'xgb_model__max_depth': 2, 'xgb_model__n_estimators': 150}
+Best score:  0.38000000000000006
+
+
+200 parcels:
+
+Best parameters:  {'xgb_model__colsample_bytree': 0.1, 'xgb_model__gamma': 0, 'xgb_model__learning_rate': 0.13, 'xgb_model__max_depth': 5, 'xgb_model__n_estimators': 100}
+Best score:  0.42000000000000004
+
+
+300 parcels:
+
+Best parameters:  {'xgb_model__colsample_bytree': 0.1, 'xgb_model__gamma': 2, 'xgb_model__learning_rate': 0.01, 'xgb_model__max_depth': 3, 'xgb_model__n_estimators': 200}
+Best score:  0.4
+
+
+400 parcels:
+
+Best parameters:  {'xgb_model__colsample_bytree': 0.1, 'xgb_model__gamma': 0, 'xgb_model__learning_rate': 0.06999999999999999, 'xgb_model__max_depth': 3, 'xgb_model__n_estimators': 100}
+Best score:  0.42000000000000004
+
+
+500 parcels:
+
+Best parameters:  {'xgb_model__colsample_bytree': 0.1, 'xgb_model__gamma': 0, 'xgb_model__learning_rate': 0.01, 'xgb_model__max_depth': 4, 'xgb_model__n_estimators': 300}
+Best score:  0.41000000000000003
+
+
+
+
+

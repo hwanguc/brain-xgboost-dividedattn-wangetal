@@ -1,7 +1,12 @@
 # brain-xgboost-dividedattn-wangetal
 
-This respiratory contains the MATLAB code for neuroimage pre-processing and Python code for XGBoost model training and inference for Wang et al. (under review).
+This respiratory contains the MATLAB code for neuroimage pre-processing and Python code for XGBoost model training and inference for Wang et al. (under review). Behavioural data and beta estimates from the first-level fMRI model are available, but neuroimages will be provided upon adequate requests.
 
-**_/processing_pipelines/step0_imgpreprocessing/_** - MATLAB code for neuroimage pre-processing (motion correction and co-registration steps) and individual (first-level) GLM analysis steps for XGBoost modelling.
+**_/1_analysis_behavioural_** - Models for behavioural data of the fMRI task, and brain-behvioural correlations.
 
-**_/processing_pipelines/step1_xgboost/_** - XGBoost model training and inference. See _xgboost_dividedattn_v2_notebook.ipynb_ for Python code.
+**_/2_analysis_fmri_glm/_** - First- and second-level general linear modelling analysis for fMRI data.
+
+**_/3_analysis_fmri_xgboost/_** - XGBoost modelling of fMRI data.
+
+
+
