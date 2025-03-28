@@ -77,7 +77,7 @@ summary(m_sp_td_glmm_full)
 gg_m_sp_td_glmm_full<-ggpredict(m_sp_td_glmm_full, terms = c("absdegTDrerange[all]","DiffSpeech","DiffGabor")) # save the prediction from the model using ggpredict()
 plot(gg_m_sp_td_glmm_full) # plot the model
 
-### the best model:
+### the best model (Table 5)
 m_sp_td_glmm_1<- glmer(AccAud~1+absdegTDrerange*DiffSpeech*DiffGabor+(1+DiffSpeech|Participant),
                        data=behavioural_n1_main_NonTarget_reranged, family = binomial(link = "logit"), 
                        control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=40e5)))
@@ -89,6 +89,7 @@ plot(gg_m_sp_td_glmm_1) # plot the model
 
 anova(m_sp_td_glmm_1,m_sp_td_glmm_full)
 
+#### plot (Figure 6):
 
 gg_m_sp_td_glmm_1_orirange <- gg_m_sp_td_glmm_1 %>%
   mutate(x_orirange=case_when(facet == "hard" ~ x+6,
@@ -156,7 +157,7 @@ gg_m_gb_acc_full<-ggpredict(m_gb_acc_full, terms = c("DiffGabor","DiffSpeech")) 
 plot(gg_m_gb_acc_full) # plot the model
 
 
-### m6 is the best model:
+### m6 is the best model (Table 3):
 m_gb_acc_6 <- glmer(AccGb~1+DiffSpeech*DiffGabor+(1+DiffGabor|Participant),
                     data=fmripilot_behav_n1_main, family = binomial(link = "logit"), 
                     control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=30e5)))
@@ -195,7 +196,7 @@ summary(m_gb_td_glmm_full)
 gg_m_gb_td_glmm_full<-ggpredict(m_gb_td_glmm_full, terms = c("absdegTDrerange[all]","DiffSpeech","DiffGabor")) # save the prediction from the model using ggpredict()
 plot(gg_m_gb_td_glmm_full) # plot the model
 
-### glmm_2 is the best model:
+### glmm_2 is the best model (Table 4):
 m_gb_td_glmm_2<- glmer(AccGb~1+absdegTDrerange*DiffSpeech*DiffGabor+(1+DiffGabor|Participant),
                        data=behavioural_n1_main_NonTarget_reranged, family = binomial(link = "logit"), 
                        control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=40e5)))
@@ -208,6 +209,7 @@ gg_m_gb_td_glmm_2<-ggpredict(m_gb_td_glmm_2, terms = c("absdegTDrerange[all]","D
 plot(gg_m_gb_td_glmm_2) # plot the model
 
 
+##### plot (Figure 5):
 gg_m_gb_td_glmm_2_orirange <- gg_m_gb_td_glmm_2 %>%
   mutate(x_orirange=case_when(facet == "hard" ~ x+6,
                               facet == "easy" ~ x+48))
