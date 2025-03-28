@@ -8,7 +8,8 @@ This respiratory contains the R, MATLAB, and Python code for analysing the behav
 
 **_./3_analysis_fmri_xgboost/_** - XGBoost modelling for fMRI data.
 
-**Tables and Fugures**
+
+**Tables and Fugures:**
 
 **_./1_analysis_behavioural/glmm.R_**: Tables 2, 3, 4, 5, B2; Figs. 5, 6.
 
