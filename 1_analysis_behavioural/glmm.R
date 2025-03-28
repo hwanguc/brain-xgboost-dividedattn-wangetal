@@ -275,7 +275,7 @@ detach("package:afex", unload=TRUE)
 
 
 
-## recall performance
+## recall performance (Table B2)
 
 library(afex)
 library(emmeans)
