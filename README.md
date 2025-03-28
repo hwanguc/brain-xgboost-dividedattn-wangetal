@@ -23,7 +23,7 @@ This respiratory contains the R, MATLAB, and Python code for analysing the behav
 
 **_./2_analysis_fmri_glm/2ndLevel/SPM.mat_**: Table 6 (Please load in SPM12.6).
 
-**_./3_analysis_fmri_xgboost/xgboost_dividedattn_v3.ipynb**: Figs 9B, 10, 11A, 11B, 12B, C3; Table 7 (please run model inference for the four binomial classification models).
+**_./3_analysis_fmri_xgboost/xgboost_dividedattn_v3.ipynb_**: Figs 9B, 10, 11A, 11B, 12B, C3; Table 7 (please run model inference for the four binomial classification models).
 
 
 
